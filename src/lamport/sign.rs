@@ -5,7 +5,7 @@ fn sign_message(msg: &[u8], sk: &Vec<[u8; 16]>) -> Vec<[u8; 16]> {
     let msg_hash = Sha3_256::digest(msg); // hashing the msg inside 
     let mut signature: Vec<[u8; 16]> = Vec::new();
 
-    for i in 0..256u32 { 
+    for i in 0..128u32 { 
         let msg_byte = i / 8;
         let msg_bit = 7 - (i % 8);
 
