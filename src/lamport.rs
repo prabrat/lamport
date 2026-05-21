@@ -1,6 +1,6 @@
 use crate::crypto::prelude::*;
 
-fn generate_keys(seed: &[u8; 16]) -> (Vec<[u8; 16]>, Vec<[u8; 16]>) {
+pub fn generate_keys(seed: &[u8; 16]) -> (Vec<[u8; 16]>, Vec<[u8; 16]>) {
     let cipher = Aes128::new(GenericArray::from_slice(seed));
     let mut sk: Vec<[u8; 16]> = Vec::new();
     let mut pk: Vec<[u8; 16]> = Vec::new();
@@ -21,7 +21,7 @@ fn generate_keys(seed: &[u8; 16]) -> (Vec<[u8; 16]>, Vec<[u8; 16]>) {
     (sk, pk)
 }
 
-fn sign_message(msg: &[u8], sk: &Vec<[u8; 16]>) -> Vec<[u8; 16]> {
+pub fn sign_message(msg: &[u8], sk: &Vec<[u8; 16]>) -> Vec<[u8; 16]> {
 
     let msg_hash: [u8; 16] = Sha3_256::digest(msg)[..16].try_into().unwrap(); // hashing the msg inside 
     let mut signature: Vec<[u8; 16]> = Vec::new();
@@ -30,14 +30,14 @@ fn sign_message(msg: &[u8], sk: &Vec<[u8; 16]>) -> Vec<[u8; 16]> {
         let byte = msg_hash[i / 8];
         let bit = ((byte >> (7 - (i % 8))) & 1) as usize;
 
-        signature.push(sk[i+bit]); // add to signature
+        signature.push(sk[2*i+bit]); // add to signature
     }
 
     signature 
     
 }
 
-fn verify_signature(msg: &[u8], signature: &Vec<[u8; 16]>, public_key: &Vec<[u8; 16]>) -> bool {
+pub fn verify_signature(msg: &[u8], signature: &Vec<[u8; 16]>, public_key: &Vec<[u8; 16]>) -> bool {
     //compute message hash
     let msg_hash: [u8; 16] = Sha3_256::digest(msg)[..16].try_into().unwrap();
     //iterate through all bits
