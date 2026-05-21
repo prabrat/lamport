@@ -1,26 +1,22 @@
 use crate::crypto::prelude::*;
 
-/* 
-    Using AES-128 as a deterministic PRF to generate Public/Secret key paid from a seed 
-    Takes in a seed and number of keys to generate, and outputs a vector of (sk, pk) pairs
+fn generate_keys(seed: &[u8; 16]) -> (Vec<[u8; 16]>, Vec<[u8; 16]>) {
+    let cipher = Aes128::new(GenericArray::from_slice(seed));
+    let mut sk: Vec<[u8; 16]> = Vec::new();
+    let mut pk: Vec<[u8; 16]> = Vec::new();
 
-    Block code for AES-256: 
-        let mut block = GenericArray::clone_from_slice(&[0u8; 16]); 
-        block[0] = i as u8; // Use the index as part of the input 
-*/
-fn generate_keys(seed: &[u8; 16], n: usize) -> Vec<(String, String)> {
-    let secret = Aes128::new(GenericArray::from_slice(seed)); // creates cipher using seed 
-    let mut keys = Vec::new();
-    for i in 0..n {
-        let mut block = GenericArray::clone_from_slice(&[0u8; 16]); 
-        secret.encrypt_block(&mut block);
+    for i in 0..256u32 {
+        let mut block = [0u8; 16];
+        block[..4].copy_from_slice(&i.to_le_bytes());
+        cipher.encrypt_block(GenericArray::from_mut_slice(&mut block));
 
-        let sk_hash = Sha3_256::digest(&block);
-        let pk_hash = Sha3_256::digest(&sk_hash);
-        let pk = hex::encode(sk_hash);
-        let sk = hex::encode(pk_hash);
-        keys.push((sk, pk));
+        // hash the sk block to get pk
+        let hash = Sha3_256::digest(&block);
+        let pk_key: [u8; 16] = hash[..16].try_into().unwrap();
+
+        sk.push(block);
+        pk.push(pk_key);
     }
-    keys
-}
 
+    (sk, pk)
+}
