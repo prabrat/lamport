@@ -1,1 +1,1 @@
-pub mode prelude;
+pub mod prelude;
