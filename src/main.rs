@@ -17,7 +17,7 @@ fn main() {
         println!("KeyGen");
         println!("Sign <file path>");
         println!("Ver <file path>");
-        println!("Quit");
+        println!("Quit\n");
         print!("> ");
         stdout.flush().unwrap();
 
