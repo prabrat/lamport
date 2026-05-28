@@ -35,7 +35,7 @@ fn main() {
                     *byte = i as u8; // replace with a real RNG in production
                 }
 
-                let (sk, pk) = generate_keys(&seed);
+                let (sk, pk) = lamportKeyGen(&seed);
 
                 // flatten vecs to bytes and write to files
                 let sk_bytes: Vec<u8> = sk.iter().flatten().copied().collect();
@@ -75,7 +75,7 @@ fn main() {
                     .map(|c| c.try_into().unwrap())
                     .collect();
 
-                let signature = sign_message(&msg, &sk);
+                let signature = lamportSign(&msg, &sk);
 
                 // flatten and write signature
                 let sig_bytes: Vec<u8> = signature.iter().flatten().copied().collect();
@@ -123,7 +123,7 @@ fn main() {
                     .map(|c| c.try_into().unwrap())
                     .collect();
 
-                let valid = verify_signature(&msg, &signature, &pk);
+                let valid = lamportVerifySignature(&msg, &signature, &pk);
 
                 if valid {
                     println!("Signature is VALID");
