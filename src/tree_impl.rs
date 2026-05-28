@@ -102,9 +102,10 @@ pub fn ver(signature: &[[u8; 16]], msg: &[u8], root_pk: &Vec<[u8; 16]>) -> bool 
         let pk_right = signature[idx + 384 .. idx + 640].to_vec(); // 384 + 256 = 640
         idx += 640;
 
-        // parent_pk must verify sigma against the two children concatenated.
+        // parent_pk should verify sigma against the two concatenated children 
         let child_pks: Vec<u8> = pk_left.iter().chain(pk_right.iter())
             .flatten().copied().collect();
+
         if !lamport_verify_signature(&child_pks, &sigma, &parent_pk) {
             return false;
         }
