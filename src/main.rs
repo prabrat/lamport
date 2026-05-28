@@ -1,6 +1,7 @@
 mod crypto;
 mod lamport;
-use crate::lamport::*; 
+mod tree_impl;
+use crate::tree_impl::*;
 use std::io::{self, Write, BufRead};
 use std::fs;
 
@@ -29,22 +30,8 @@ fn main() {
 
         match parts[0] {
             "KeyGen" => {
-                // generate random seed
-                let mut seed = [0u8; 16];
-                for (i, byte) in seed.iter_mut().enumerate() {
-                    *byte = i as u8; // replace with a real RNG in production
-                }
+                key_gen().unwrap();
 
-                let (sk, pk) = lamportKeyGen(&seed);
-
-                // flatten vecs to bytes and write to files
-                let sk_bytes: Vec<u8> = sk.iter().flatten().copied().collect();
-                let pk_bytes: Vec<u8> = pk.iter().flatten().copied().collect();
-
-                fs::write("secret_key.bin", &sk_bytes).unwrap();
-                fs::write("public_key.bin", &pk_bytes).unwrap();
-
-                println!("Keys written to secret_key.bin and public_key.bin");
                 println!("Press enter to continue...");
                 let mut buf = String::new();
                 stdin.lock().read_line(&mut buf).unwrap();
@@ -56,32 +43,8 @@ fn main() {
                     continue;
                 }
                 let file_path = parts[1];
-
-                // read message file
-                let msg = match fs::read(file_path) {
-                    Ok(bytes) => bytes,
-                    Err(e) => { println!("Error reading file: {}", e); continue; }
-                };
-
-                // read secret key
-                let sk_bytes = match fs::read("secret_key.bin") {
-                    Ok(bytes) => bytes,
-                    Err(e) => { println!("Error reading secret key: {}", e); continue; }
-                };
-
-                // reconstruct sk as Vec<[u8; 16]>
-                let sk: Vec<[u8; 16]> = sk_bytes
-                    .chunks(16)
-                    .map(|c| c.try_into().unwrap())
-                    .collect();
-
-                let signature = lamportSign(&msg, &sk);
-
-                // flatten and write signature
-                let sig_bytes: Vec<u8> = signature.iter().flatten().copied().collect();
-                fs::write("signature.bin", &sig_bytes).unwrap();
-
-                println!("Signature written to signature.bin");
+                sign(file_path).unwrap();
+            
                 println!("Press enter to continue...");
                 let mut buf = String::new();
                 stdin.lock().read_line(&mut buf).unwrap();
@@ -123,7 +86,7 @@ fn main() {
                     .map(|c| c.try_into().unwrap())
                     .collect();
 
-                let valid = lamportVerifySignature(&msg, &signature, &pk);
+                let valid = ver(&signature, &msg, &pk);
 
                 if valid {
                     println!("Signature is VALID");
